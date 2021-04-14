@@ -1,6 +1,11 @@
 <title></title>
 <script>
   let interval;
+  let begin, end;
+  let reps, sets, rest;
+  let next;
+  let pause, pauseInterval, isPaused = false;
+  let isClear = true;
 
   // Get a dropdown value by its html id
   function getValue(id) {
@@ -22,62 +27,76 @@
     document.getElementById('message').innerHTML = message;
   }
 
-  // Start the timer
-  function start() {
-    const begin = Math.floor(Date.now() / 1000);
-    let end = begin;
-    const reps = 4;
-    const sets = getValue('sets');
-    const rest = getValue('rest');
+  // Start the Get Ready phase
+  function getReady() {
+    end += 5;
+    setMessage('Get Ready...');
+  }
 
-    function getReady() {
-      end += 5;
-      setMessage('Get Ready...');
-    }
+  // Start a rep
+  function rep() {
+    end += 10;
+    setMessage('Hang!');
+  }
 
-    function rep() {
-      end += 10;
-      setMessage('Hang!');
-    }
+  // Start a rest between reps
+  function repRest() {
+    end += rest;
+    setMessage('Rest');
+  }
 
-    function repRest() {
-      end += rest;
-      setMessage('Rest');
-    }
+  // Start a rest between sets
+  function setRest() {
+    end += 120;
+    setMessage('Take a short break');
+  }
 
-    function setRest() {
-      end += 120;
-      setMessage('Take a short break');
-    }
+  // End the workout
+  function terminate() {
+    setMessage('Done');
+    stop();
+  }
 
-    function terminate() {
-      setMessage('Done');
-      stop();
-    }
-
-    function* set() {
+  // Generates an iterable of workout phases for a set
+  function* set() {
+    yield rep;
+    for (let r=1; r<reps; r++) {
+      yield repRest;
       yield rep;
-      for (let r=1; r<reps; r++) {
-        yield repRest;
-        yield rep;
-      }
     }
+  }
 
-    function* workout() {
-      yield getReady;
+  // Generates an iterable of workout phases for the whole workout
+  function* workout() {
+    yield getReady;
+    for (let event of set()) {
+      yield event;
+    }
+    for (let s=1; s<sets; s++) {
+      yield setRest;
       for (let event of set()) {
         yield event;
       }
-      for (let s=1; s<sets; s++) {
-        yield setRest;
-        for (let event of set()) {
-          yield event;
-        }
-      }
     }
+  }
+
+  // Calculate time to display (in seconds)
+  function getTimeRemaining() {
+    const now = Math.floor(Date.now() / 1000);
+    const timePassed = now - begin;
+    return end - timePassed - begin;
+  }
+
+  // Begins the workout
+  function start() {
+    begin = Math.floor(Date.now() / 1000);
+    end = begin;
+    reps = 4;
+    sets = getValue('sets');
+    rest = getValue('rest');
 
     // start the next phase of the workout
-    const next = (() => {
+    next = (() => {
       const w = workout();
       let current = w.next();
       return () => {
@@ -90,31 +109,62 @@
       }
     })();
 
-    // Calculate time to display (in seconds)
-    function getTimeRemaining() {
-      const now = Math.floor(Date.now() / 1000);
-      const timePassed = now - begin;
-      return end - timePassed - begin;
-    }
+    next();
+    resume();
+  }
 
+  // Start the countdown
+  function resume() {
     function update() {
       let timeRemaining = getTimeRemaining();
       if (timeRemaining < 1) {
         next();
         timeRemaining = getTimeRemaining();
       }
-
       setTime(timeRemaining);
     }
 
-    next();
+    // Pauses the timer
+    pause = () => {
+      isPaused = true;
+      clearInterval(interval);
+      pauseInterval = setInterval(() => {
+        end += 1;
+      }, 1000);
+    };
+
+    isPaused = false;
+    clearInterval(pauseInterval);
     update();
     interval = setInterval(update, 1000);
   }
 
   // Stop the workout
   function stop() {
+    isClear = true;
+    setTime(0);
     clearInterval(interval);
+  }
+
+  // Handles the click event for the start button
+  function clickStart() {
+    if (isClear) {
+      isClear = false;
+      start();
+    } else if (isPaused) {
+      resume();
+    }
+  }
+
+  // Handles the click event for the stop button
+  function clickStop() {
+    if (!isClear) {
+      if (isPaused) {
+        stop();
+      } else {
+        pause();
+      }
+    }
   }
 </script>
 <style>
@@ -145,7 +195,7 @@
   <h1 id="time" style="font-size:10em;margin:0">00:00</h1>
   <h3 id="message" style="font-size:5em;margin:0">Press Start</h3>
   <p>
-    <button onclick="start()">Start</button><span>&nbsp;</span><button onclick="stop()">Stop</button>
+    <button onclick="clickStart()">Start</button><span>&nbsp;</span><button onclick="clickStop()">Stop</button>
   </p>
   <p>
     <label>
