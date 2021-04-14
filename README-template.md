@@ -4,6 +4,8 @@ A simple, offline web app embedded in a bookmark link for tracking hangboard wor
 
 ## Usage
 
-Simply drag this link to your bookmarks bar. Click it to open the the app:
+Simply copy and paste this code into your address bar. You can bookmark the page and it will work even if you're offline
 
-[Hangboard Timer]($$$)
+```
+$$$
+```
