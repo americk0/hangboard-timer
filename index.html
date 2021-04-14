@@ -1,29 +1,101 @@
 <title></title>
 <script>
   let interval;
-  let begin;
 
   function getValue(id) {
     const element = document.getElementById(id);
-    return element.options[element.selectedIndex].value;
+    return Number(element.options[element.selectedIndex].value);
   }
 
   function setTime(time) {
-    document.title = t; 
-    document.getElementById("time").innerHTML = time; 
+    const date = new Date(time * 1000);
+    const timeString = `${String(date.getUTCMinutes()).padStart(2, "0")}:${String(date.getUTCSeconds()).padStart(2, "0")}`; 
+
+    document.title = timeString; 
+    document.getElementById("time").innerHTML = timeString; 
+  }
+
+  function setMessage(message) {
+    document.getElementById('message').innerHTML = message;
   }
 
   function start() {
-    begin = new Date();
+    const begin = Math.floor(Date.now() / 1000);
     const rest = getValue('rest');
+    const reps = 4;
     const sets = getValue('sets');
+    let end = begin;
 
-    function update() {
-      diff = new Date(Date.now() - begin);
-      t = `${String(diff.getUTCMinutes()).padStart(2, "0")}:${String(diff.getUTCSeconds()).padStart(2, "0")}`; 
-      setTime(t);
+    function getReady() {
+      end += 5;
+      setMessage('Get Ready...');
+    }
+    function rep() {
+      end += 10;
+      setMessage('Hang!');
+    }
+    function repRest() {
+      end += rest;
+      setMessage('Rest');
+    }
+    function setRest() {
+      end += 120;
+      setMessage('Take a short break');
+    }
+    function terminate() {
+      setMessage('Done');
+      stop();
     }
 
+    function* set() {
+      yield rep;
+      for (let r=1; r<reps; r++) {
+        yield repRest;
+        yield rep;
+      }
+    }
+    function* workout() {
+      yield getReady;
+      for (let event of set()) {
+        yield event;
+      }
+      for (let s=1; s<sets; s++) {
+        yield setRest;
+        for (let event of set()) {
+          yield event;
+        }
+      }
+    }
+    const next = (() => {
+      const w = workout();
+      let current = w.next();
+      return () => {
+        if (current.done) {
+          terminate();
+        } else {
+          (current.value)();
+          current = w.next();
+        }
+      }
+    })();
+
+    function getTimeRemaining() {
+      const now = Math.floor(Date.now() / 1000);
+      const timePassed = now - begin;
+      return end - timePassed - begin;
+    }
+
+    function update() {
+      let timeRemaining = getTimeRemaining();
+      if (timeRemaining < 1) {
+        next();
+        timeRemaining = getTimeRemaining();
+      }
+
+      setTime(timeRemaining);
+    }
+
+    next();
     update();
     interval = setInterval(update, 1000);
   }
