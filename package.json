@@ -1,0 +1,11 @@
+{
+  "name": "hangboard-timer",
+  "version": "1.0.0",
+  "description": "A simple timer for hangboard workouts",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "ben.watson.developer@gmail.com",
+  "license": "ISC"
+}
