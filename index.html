@@ -26,6 +26,9 @@
   function start() {
     const begin = Math.floor(Date.now() / 1000);
     let end = begin;
+    const reps = 4;
+    const sets = getValue('sets');
+    const rest = getValue('rest');
 
     function getReady() {
       end += 5;
@@ -38,7 +41,6 @@
     }
 
     function repRest() {
-      const rest = getValue('rest');
       end += rest;
       setMessage('Rest');
     }
@@ -54,7 +56,6 @@
     }
 
     function* set() {
-      const reps = 4;
       yield rep;
       for (let r=1; r<reps; r++) {
         yield repRest;
@@ -63,7 +64,6 @@
     }
 
     function* workout() {
-      const sets = getValue('sets');
       yield getReady;
       for (let event of set()) {
         yield event;
