@@ -1,18 +1,29 @@
 <title></title>
 <script>
   let interval;
-
   let begin;
+
+  function getValue(id) {
+    const element = document.getElementById(id);
+    return element.options[element.selectedIndex].value;
+  }
+
+  function setTime(time) {
+    document.title = t; 
+    document.getElementById("time").innerHTML = time; 
+  }
 
   function start() {
     begin = new Date();
+    const rest = getValue('rest');
+    const sets = getValue('sets');
 
     function update() {
       diff = new Date(Date.now() - begin);
       t = `${String(diff.getUTCMinutes()).padStart(2, "0")}:${String(diff.getUTCSeconds()).padStart(2, "0")}`; 
-      document.title = t; 
-      document.getElementById("time").innerHTML = t; 
+      setTime(t);
     }
+
     update();
     interval = setInterval(update, 1000);
   }
@@ -55,7 +66,7 @@
     <label>
       Rest:
     </label>
-    <select>
+    <select id="rest">
       <option value="30">30s</option>
       <option value="20">20s</option>
     </select>
@@ -63,7 +74,7 @@
     <label>
       Sets:
     </label>
-    <select>
+    <select id="sets">
       <option value="3">3</option>
       <option value="4">4</option>
       <option value="5">5</option>
