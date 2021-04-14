@@ -2,11 +2,13 @@
 <script>
   let interval;
 
+  // Get a dropdown value by its html id
   function getValue(id) {
     const element = document.getElementById(id);
     return Number(element.options[element.selectedIndex].value);
   }
 
+  // Set the time on the clock (in seconds)
   function setTime(time) {
     const date = new Date(time * 1000);
     const timeString = `${String(date.getUTCMinutes()).padStart(2, "0")}:${String(date.getUTCSeconds()).padStart(2, "0")}`; 
@@ -15,46 +17,53 @@
     document.getElementById("time").innerHTML = timeString; 
   }
 
+  // Set the message to display
   function setMessage(message) {
     document.getElementById('message').innerHTML = message;
   }
 
+  // Start the timer
   function start() {
     const begin = Math.floor(Date.now() / 1000);
-    const rest = getValue('rest');
-    const reps = 4;
-    const sets = getValue('sets');
     let end = begin;
 
     function getReady() {
       end += 5;
       setMessage('Get Ready...');
     }
+
     function rep() {
       end += 10;
       setMessage('Hang!');
     }
+
     function repRest() {
+      const rest = getValue('rest');
       end += rest;
       setMessage('Rest');
     }
+
     function setRest() {
       end += 120;
       setMessage('Take a short break');
     }
+
     function terminate() {
       setMessage('Done');
       stop();
     }
 
     function* set() {
+      const reps = 4;
       yield rep;
       for (let r=1; r<reps; r++) {
         yield repRest;
         yield rep;
       }
     }
+
     function* workout() {
+      const sets = getValue('sets');
       yield getReady;
       for (let event of set()) {
         yield event;
@@ -66,6 +75,8 @@
         }
       }
     }
+
+    // start the next phase of the workout
     const next = (() => {
       const w = workout();
       let current = w.next();
@@ -79,6 +90,7 @@
       }
     })();
 
+    // Calculate time to display (in seconds)
     function getTimeRemaining() {
       const now = Math.floor(Date.now() / 1000);
       const timePassed = now - begin;
@@ -100,6 +112,7 @@
     interval = setInterval(update, 1000);
   }
 
+  // Stop the workout
   function stop() {
     clearInterval(interval);
   }
