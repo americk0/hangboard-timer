@@ -23,3 +23,7 @@ const result = 'data:text/html, ' + minify(file, {
 console.log(result);
 
 fs.writeFileSync('./dist/link.txt', result);
+
+const readme = fs.readFileSync('./README-template.md', 'utf-8').replace('$$$', result);
+
+fs.writeFileSync('./README.md', readme);
