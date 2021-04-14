@@ -6,6 +6,7 @@ const result = 'data:text/html, ' + minify(file, {
   minifyJS: {
     mangle: {
       toplevel: true,
+      reserved: ['clickStart', 'clickStop']
     },
     keep_fnames: false,
     compress: true,
